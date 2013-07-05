@@ -21,17 +21,41 @@ class MainWidget(QtGui.QWidget):
     def initUI(self):
         
         self.video = videoWidget.VideoWidget()
-#        self.console = 
+        self.console = ButtonWidget()
+
         # initilize a Main Lyout set used widgets to it
         mainLayout = QtGui.QVBoxLayout()
         mainLayout.addWidget(self.video)
+        mainLayout.addWidget(self.console)
         # Set signals and slots
-
+        self.console.photoBtn.clicked.connect(self.video.screenTimer)
+        
         # set Main layout to Dialog
         self.setLayout(mainLayout)
 
         # create Menubar
         self.show()
+        
+        
+class ButtonWidget(QtGui.QWidget):
+
+    def __init__(self):
+
+        QtGui.QWidget.__init__(self)
+
+        self.initUI()
+
+        
+    def initUI(self):
+
+        # Creating Button to call Calendar
+        self.photoBtn = QtGui.QPushButton('Ausloeser')
+        hbox = QtGui.QHBoxLayout()
+
+        hbox.addWidget(self.photoBtn)       
+
+        self.setLayout(hbox)
+        self.show
 
         
 # Main Widget

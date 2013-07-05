@@ -12,6 +12,7 @@ import cv2.cv as cv
 import sys
 import numpy as np
 import os
+import time
 
 from PyQt4 import QtGui, QtCore
 
@@ -47,12 +48,14 @@ class VideoWidget(QtGui.QWidget):
         rval, frame = self._capture.read()
         self._frame = None
         self._image = self._build_image(rval, frame)
-        # Paint every 50 ms
         self._timer = QtCore.QTimer(self)
         self._timer.timeout.connect(self.queryFrame)
-        self._timer.start(10)
-        self.savePath = "/home/jn/Dokumente/python/opencv"
+        self._timer.start(50)
+        self.savePath = "/home/jn/Dokumente/python/opencv/photo_booth/pics"
+        self.screenTimerCount = 0
+        self.currentDir = self.savePath
 
+        
     def _build_image(self,rval, frame):
         if not rval:
             self._frame = np.zeros((frame.shape[0], frame.shape[1]),
@@ -64,12 +67,33 @@ class VideoWidget(QtGui.QWidget):
         painter = QtGui.QPainter(self)
         painter.drawImage(QtCore.QPoint(0, 0), self._image)
 
+        
     def queryFrame(self):
         rval, frame = self._capture.read()
         self._image = self._build_image(rval, frame)
         self.update()
- 
-    def mkfolder(self, frame):
-        folderName = time.strftime("%Y-%m-%d--%H-%M-%S")
-        os.mkdir(self.savePath + "/" + folderName)
-        cv2.imwrite(self.savePath + "/" + folderName + "/" + "Pic1.png", frame)
+
+        
+    def mkfolder(self):
+        folderName = self.savePath + "/" + time.strftime("%Y-%m-%d--%H-%M-%S")
+        os.mkdir(folderName)
+        self.currentDir = folderName
+
+        
+    def getScreenshot(self):
+        picName = "pic" + str(self.screenTimerCount) + ".png"
+        cv2.imwrite(self.currentDir + "/" + picName, self._frame)
+        print(picName + " gespeichert")
+        
+        self.screenTimerCount += 1
+        if self.screenTimerCount == 3:
+            self.screenTimer.stop()
+        
+    def screenTimer(self):
+        self.mkfolder()
+        self.screenTimer = QtCore.QTimer()
+        self.screenTimer.timeout.connect(self.getScreenshot)
+        self.screenTimer.start(2000)
+        
+        
+    def 
