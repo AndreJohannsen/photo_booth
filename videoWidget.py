@@ -13,6 +13,7 @@ import sys
 import numpy as np
 import os
 import time
+import shutil
 
 from PyQt4 import QtGui, QtCore
 
@@ -52,6 +53,7 @@ class VideoWidget(QtGui.QWidget):
         self._timer.timeout.connect(self.queryFrame)
         self._timer.start(50)
         self.savePath = "/home/jn/Dokumente/python/opencv/photo_booth/pics"
+        self.latexPath = "/home/jn/Dokumente/python/opencv/photo_booth/latex"
         self.screenTimerCount = 0
         self.currentDir = self.savePath
 
@@ -88,12 +90,26 @@ class VideoWidget(QtGui.QWidget):
         self.screenTimerCount += 1
         if self.screenTimerCount == 3:
             self.screenTimer.stop()
+            self.compileLatex()
         
     def screenTimer(self):
         self.mkfolder()
         self.screenTimer = QtCore.QTimer()
         self.screenTimer.timeout.connect(self.getScreenshot)
         self.screenTimer.start(2000)
-        
-        
-    def 
+
+
+    def compileLatex(self):
+
+        for item in range(3):
+            shutil.copy(self.currentDir + "/pic" + str(item) + ".png",
+                        self.latexPath)
+        newName = (self.currentDir).rsplit("/",1)[1]            
+        direc = os.getcwd()
+        os.chdir(self.latexPath)
+        os.system("sed -i 's/tiny[{0-9-]*/tiny{" + newName + "/g' vorlage.tex")
+        os.system("pdflatex vorlage.tex")
+
+        shutil.copy(self.latexPath + "/vorlage.pdf",
+                    self.currentDir + "/photo_series_" + newName + ".pdf")
+        os.chdir(direc)
