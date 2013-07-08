@@ -45,6 +45,8 @@ class VideoWidget(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self)
         self._capture = cv2.VideoCapture(0)
+        self._capture.set(3, 720)
+        self._capture.set(4, 1280)
         # Take one frame to query height
         rval, frame = self._capture.read()
         self.setMinimumSize(QtCore.QSize(frame.shape[0], frame.shape[1]))
@@ -52,7 +54,7 @@ class VideoWidget(QtGui.QWidget):
         self._image = self._build_image(rval, frame)
         self._timer = QtCore.QTimer(self)
         self._timer.timeout.connect(self.queryFrame)
-        self._timer.start(50)
+        self._timer.start(self.execTime)
         self.savePath = "/home/jn/Dokumente/python/opencv/photo_booth/pics"
         self.latexPath = "/home/jn/Dokumente/python/opencv/photo_booth/latex"
         self.screenTimerCount = 0
@@ -61,7 +63,12 @@ class VideoWidget(QtGui.QWidget):
         self.countTime = 10000
         self.countdownText = self.countTime / 1000
         self.resolution = (800, 600)
-
+        self.cascade = "/usr/share/OpenCV/haarcascades/haarcascade_frontalface_alt.xml"
+        self.faceClassifier = cv2.CascadeClassifier(self.cascade)
+        self.faceCount = 0
+        
+        
+        
     def _build_image(self,rval, frame):
         if not rval:
             self._frame = np.zeros((frame.shape[0], frame.shape[1]),
@@ -80,8 +87,7 @@ class VideoWidget(QtGui.QWidget):
         if self.showCountdown:
             cv2.putText(frame,str(self.countdownText),(500,300),
                         cv2.FONT_HERSHEY_SIMPLEX,
-                        10.0,(0,0,0),thickness=20,)
-            
+                        10.0,(255,0,0),thickness=20,)
         self._image = self._build_image(rval, frame)
         self.update()
         
@@ -115,8 +121,7 @@ class VideoWidget(QtGui.QWidget):
             self.waitTimer.setSingleShot(1)
 
     def resumeAfterWait(self):
-        print("Hallo")
-        self._timer.start(50)
+        self._timer.start(self.execTime)
         
             
     def screenTimer(self):
