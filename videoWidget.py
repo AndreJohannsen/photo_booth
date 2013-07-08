@@ -54,6 +54,7 @@ class VideoWidget(QtGui.QWidget):
         self._image = self._build_image(rval, frame)
         self._timer = QtCore.QTimer(self)
         self._timer.timeout.connect(self.queryFrame)
+        self.execTime = 50  # delay in ms
         self._timer.start(self.execTime)
         self.savePath = "/home/jn/Dokumente/python/opencv/photo_booth/pics"
         self.latexPath = "/home/jn/Dokumente/python/opencv/photo_booth/latex"
@@ -63,11 +64,6 @@ class VideoWidget(QtGui.QWidget):
         self.countTime = 10000
         self.countdownText = self.countTime / 1000
         self.resolution = (800, 600)
-        self.cascade = "/usr/share/OpenCV/haarcascades/haarcascade_frontalface_alt.xml"
-        self.faceClassifier = cv2.CascadeClassifier(self.cascade)
-        self.faceCount = 0
-        
-        
         
     def _build_image(self,rval, frame):
         if not rval:
