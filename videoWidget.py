@@ -56,8 +56,15 @@ class VideoWidget(QtGui.QWidget):
         self._timer.timeout.connect(self.queryFrame)
         self.execTime = 50  # delay in ms
         self._timer.start(self.execTime)
-        self.savePath = "/home/jn/Dokumente/python/opencv/photo_booth/pics"
-        self.latexPath = "/home/jn/Dokumente/python/opencv/photo_booth/latex"
+        os.getcwd()
+        self.savePath = os.getcwd() + "/pics"
+        if not os.path.isdir(self.savePath):
+            os.mkdir(self.savePath)
+        self.latexPath = os.getcwd() + "/tmp"
+        if not os.path.isdir(self.latexPath):
+            os.mkdir(self.latexPath)
+            shutil.copy(os.getcwd() + "/latex/vorlage.tex",
+                        self.latexPath)
         self.screenTimerCount = 0
         self.currentDir = self.savePath
         self.showCountdown = 0
@@ -136,7 +143,6 @@ class VideoWidget(QtGui.QWidget):
         
     def countUp(self):
         self.countdownText = self.countdownText - 1
-        print(str(self.countdownText))
         if self.countdownText == 0:
             self.countTimer.stop()
             self.showCountdown = 0
@@ -148,8 +154,9 @@ class VideoWidget(QtGui.QWidget):
                         self.latexPath)
         newName = (self.currentDir).rsplit("/",1)[1]            
         direc = os.getcwd()
+        shutil.copy(os.getcwd() + "/latex/vorlage.tex", self.latexPath)
         os.chdir(self.latexPath)
-        os.system("sed -i 's/tiny[{0-9-]*/tiny{" + newName + "/g' vorlage.tex")
+        os.system("sed -i 's/tiny{Date}/tiny{" + newName + "/g' vorlage.tex")
         os.system("pdflatex vorlage.tex")
 
         shutil.copy(self.latexPath + "/vorlage.pdf",
