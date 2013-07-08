@@ -47,6 +47,7 @@ class VideoWidget(QtGui.QWidget):
         self._capture = cv2.VideoCapture(0)
         # Take one frame to query height
         rval, frame = self._capture.read()
+        self.setMinimumSize(QtCore.QSize(frame.shape[0], frame.shape[1]))
         self._frame = None
         self._image = self._build_image(rval, frame)
         self._timer = QtCore.QTimer(self)
@@ -56,8 +57,11 @@ class VideoWidget(QtGui.QWidget):
         self.latexPath = "/home/jn/Dokumente/python/opencv/photo_booth/latex"
         self.screenTimerCount = 0
         self.currentDir = self.savePath
+        self.showCountdown = 0
+        self.countTime = 3000
+        self.countdownText = self.countTime / 1000
+        self.resolution = (800, 600)
 
-        
     def _build_image(self,rval, frame):
         if not rval:
             self._frame = np.zeros((frame.shape[0], frame.shape[1]),
@@ -72,9 +76,14 @@ class VideoWidget(QtGui.QWidget):
         
     def queryFrame(self):
         rval, frame = self._capture.read()
+        frame = cv2.resize(frame, self.resolution)
+        if self.showCountdown:
+            cv2.putText(frame,str(self.countdownText),(500,300),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        10.0,(0,0,0),thickness=20,)
+            
         self._image = self._build_image(rval, frame)
         self.update()
-
         
     def mkfolder(self):
         folderName = self.savePath + "/" + time.strftime("%Y-%m-%d--%H-%M-%S")
@@ -83,6 +92,10 @@ class VideoWidget(QtGui.QWidget):
 
         
     def getScreenshot(self):
+        if self.showCountdown:
+            self.showCountdown = 0
+            self.queryFrame()
+
         picName = "pic" + str(self.screenTimerCount) + ".png"
         cv2.imwrite(self.currentDir + "/" + picName, self._frame)
         print(picName + " gespeichert")
@@ -91,14 +104,33 @@ class VideoWidget(QtGui.QWidget):
         if self.screenTimerCount == 3:
             self.screenTimer.stop()
             self.compileLatex()
+        else:
+            self.showCountdown = 1
+            self.countdownText = self.countTime / 1000
+            self.showCount()
+    
         
     def screenTimer(self):
         self.mkfolder()
         self.screenTimer = QtCore.QTimer()
         self.screenTimer.timeout.connect(self.getScreenshot)
-        self.screenTimer.start(2000)
+        self.screenTimer.start(self.countTime)
+        self.showCountdown = 1
+        self.showCount()
+        
 
-
+    def showCount(self):
+        self.countTimer = QtCore.QTimer()
+        self.countTimer.timeout.connect(self.countUp)
+        self.countTimer.start(1000)
+        
+    def countUp(self):
+        self.countdownText = self.countdownText - 1
+        print(str(self.countdownText))
+        if self.countdownText == 0:
+            self.countTimer.stop()
+            self.showCountdown = 0
+        
     def compileLatex(self):
 
         for item in range(3):
