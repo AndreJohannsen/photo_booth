@@ -58,7 +58,7 @@ class VideoWidget(QtGui.QWidget):
         self.screenTimerCount = 0
         self.currentDir = self.savePath
         self.showCountdown = 0
-        self.countTime = 3000
+        self.countTime = 10000
         self.countdownText = self.countTime / 1000
         self.resolution = (800, 600)
 
@@ -108,8 +108,17 @@ class VideoWidget(QtGui.QWidget):
             self.showCountdown = 1
             self.countdownText = self.countTime / 1000
             self.showCount()
-    
+            self._timer.stop()
+            self.waitTimer = QtCore.QTimer()
+            self.waitTimer.timeout.connect(self.resumeAfterWait)
+            self.waitTimer.start(2000)
+            self.waitTimer.setSingleShot(1)
+
+    def resumeAfterWait(self):
+        print("Hallo")
+        self._timer.start(50)
         
+            
     def screenTimer(self):
         self.mkfolder()
         self.screenTimer = QtCore.QTimer()
