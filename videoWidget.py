@@ -36,7 +36,8 @@ class IplQImage(QtGui.QImage):
         ])
         self.__imagedata = rgba.tostring()
         super(IplQImage,self).__init__(self.__imagedata, iplimage.shape[1],
-                                       iplimage.shape[0], QtGui.QImage.Format_RGB32)
+                                       iplimage.shape[0],
+                                       QtGui.QImage.Format_RGB32)
 
 
 class VideoWidget(QtGui.QWidget):
@@ -44,9 +45,8 @@ class VideoWidget(QtGui.QWidget):
 
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self)
-        self._capture = cv2.VideoCapture(0)
-        self._capture.set(3, 720)
-        self._capture.set(4, 1280)
+        self._capture = cv2.VideoCapture(1)
+        self.setResolution("HIGH")
         # Take one frame to query height
         rval, frame = self._capture.read()
         self.setMinimumSize(QtCore.QSize(frame.shape[0], frame.shape[1]))
@@ -70,12 +70,11 @@ class VideoWidget(QtGui.QWidget):
         self.showCountdown = 0
         self.countTime = 10000
         self.countdownText = self.countTime / 1000
-        self.resolution = (800, 600)
         
     def _build_image(self,rval, frame):
         if not rval:
             self._frame = np.zeros((frame.shape[0], frame.shape[1]),
-                                   np.uint8, frame.shape[1])
+                                   np.uint8, frame.shape[2])
         self._frame = frame
         return IplQImage(self._frame)
 
@@ -86,11 +85,11 @@ class VideoWidget(QtGui.QWidget):
         
     def queryFrame(self):
         rval, frame = self._capture.read()
-        frame = cv2.resize(frame, self.resolution)
+        frame = cv2.resize(frame, (800,600))
         if self.showCountdown:
             cv2.putText(frame,str(self.countdownText),(500,300),
                         cv2.FONT_HERSHEY_SIMPLEX,
-                        10.0,(255,0,0),thickness=20,)
+                        10.0,(0,0,0),thickness=20,)
         self._image = self._build_image(rval, frame)
         self.update()
         
@@ -103,10 +102,11 @@ class VideoWidget(QtGui.QWidget):
     def getScreenshot(self):
         if self.showCountdown:
             self.showCountdown = 0
-            self.queryFrame()
+            #self.queryFrame()
 
+        rval, frame = self._capture.read()
         picName = "pic" + str(self.screenTimerCount) + ".png"
-        cv2.imwrite(self.currentDir + "/" + picName, self._frame)
+        cv2.imwrite(self.currentDir + "/" + picName, frame)
         print(picName + " gespeichert")
         
         self.screenTimerCount += 1
@@ -162,3 +162,14 @@ class VideoWidget(QtGui.QWidget):
         shutil.copy(self.latexPath + "/vorlage.pdf",
                     self.currentDir + "/photo_series_" + newName + ".pdf")
         os.chdir(direc)
+
+        
+    def setResolution(self, res):
+
+        if res == "HIGH":
+            self._capture.set(4, 800)
+            self._capture.set(3, 1280)
+        elif res == "LOW":
+            self._capture.set(4, 480)
+            self._capture.set(3, 640)
+
